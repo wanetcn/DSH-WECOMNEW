@@ -1,4 +1,4 @@
-# wecomnew（dsh-wecom 增强版）
+# DSH-WECOMNEW（dsh-wecom 增强版）
 
 > 基于 [michaelcode-wang/dsh-wecom](https://github.com/michaelcode-wang/dsh-wecom)（MIT）增强：在上游桥接能力之上，新增企业微信文件收发、多用户工作区隔离与管理员分级、待办提醒，以及 **ask_user_question / 权限确认向企业微信的透传**（不再依赖 web 界面应答）。
 
@@ -19,7 +19,18 @@
 - **侧栏状态入口**：dsh web 界面侧栏底部（设置上方）有 📱「企微」入口，直接显示总用户数、总会话数与连接状态，点击弹出完整面板（在线时长、活动会话、收发消息计数、待用户应答数；数据来自插件注册的 `/api/wecom/status` 路由）
 - **会话自动归组**：每个企微用户的会话自动挂到侧栏的「wecom」工作区分组（历史会话启动时回填，新会话创建即挂载）；因每用户目录是沙箱写边界，每个用户一个 wecom 文件夹
 - **流式进度直播**：收到消息立刻出现一个「🤔 正在处理…」气泡，agent 干活过程中实时刷新（工具调用、耗时），完成后气泡定格为最终答案——全程只有一条消息；超过 10 分钟（网关流上限）自动转为主动推送模式，可用 `progress.enabled=false` 关闭
-- 聊天命令：`/help`、`/todo`、`/reset`、`/status`
+- 聊天命令：`/help`、`/todo`、`/history`、`/switch`、`/reset`、`/status`，**支持最短唯一前缀**（如 `/hi` 即 `/history`；前缀有歧义时会列出候选）
+- 待办提醒：`/todo` 显示用户待办事宜；待办行带日期时间（如 `2026-09-05 20:00`）时，系统在到期前主动推送企业微信提醒（默认提前 30 分钟，行内可用 `提前N分钟/提前N小时` 自定义）
+
+## 历史会话管理
+
+```text
+/history     列出本聊天的历史会话（新→旧，含标题、创建时间，标注当前会话）
+/switch 2    切换到列表中第 2 个会话，上下文完整恢复，继续对话即可
+```
+
+- 列表范围 = 当前聊天的工作区（私聊 = 你的私有目录；群聊 = 群共享目录）
+- 任务执行中会拒绝切换；切换失败自动回退原会话
 - 待办提醒：`/todo` 显示用户待办事宜；待办行带日期时间（如 `2026-09-05 20:00`）时，系统在到期前主动推送企业微信提醒（默认提前 30 分钟，行内可用 `提前N分钟/提前N小时` 自定义）
 
 ## 交互问答
@@ -47,7 +58,7 @@
 
 ```bash
 # 从 GitHub
-dsh plugin --profile im add github:wanetcn/wecomnew
+dsh plugin --profile im add github:wanetcn/DSH-WECOMNEW
 ```
 
 ## 前置条件
@@ -98,10 +109,14 @@ dsh plugin --profile im add github:wanetcn/wecomnew
 | `files.dir` | `''` | 文件保存根目录；默认 `<usersRoot>/.wecom-uploads/<userId>/` |
 | `files.maxBytes` | `104857600` | 单文件上限（字节），默认 100MB |
 | `files.timeoutMs` | `30000` | 文件下载超时（ms）；下载链接约 5 分钟有效 |
+| `files.sendEnabled` | `true` | 发送文件开关（`wecom_send_file` 工具，DSH → WeCom） |
+| `files.maxSendBytes` | `50331648` | 单个外发文件上限（字节），默认 48MB；网关硬上限约 50MB |
 | `security.adminIds` | `[]` | 超级用户 userid 列表（管理员：完整沙箱权限、可改 dsh/系统配置、可查看所有用户会话） |
 | `security.usersRoot` | `''` | 所有用户（含管理员）的私有工作区根目录；`<usersRoot>/<userId>`，上传存 `<usersRoot>/.wecom-uploads/<userId>/`；默认 `<agent.cwd>/users` |
 | `security.publicDir` | `''` | 公共工作区（普通用户只读）；默认 `<agent.cwd>/public` |
+| `security.groupsRoot` | `''` | 群聊共享工作区根目录；每群 `<groupsRoot>/<chatId>`，默认 usersRoot 同级 `groups/` |
 | `security.boundaryPrompt` | `true` | 是否注入每用户权限边界提示 |
+| `progress.enabled` | `true` | 流式进度气泡开关（收消息秒回 + 工具活动实时刷新，完成定格为答案） |
 | `todo.file` | `待办事宜文件.md` | 每个用户私有工作区中的待办文件名（`/todo` 读取并展示） |
 | `todo.defaultRemindMinutes` | `30` | 未写 `提前N` 时的默认提醒提前量（分钟） |
 | `todo.checkIntervalMs` | `300000` | 提醒扫描周期（ms，默认 5 分钟，最小 5000） |
