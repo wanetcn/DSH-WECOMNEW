@@ -1,0 +1,20 @@
+# dsh-wecom bundle patch: insert the WeCom Smart Robot gateway plugin row.
+#
+# The row is disabled by default. Enable it from the profile's own
+# cordis.patch.yml (or a --patch overlay) with your bot credentials, e.g.:
+#
+#   - id: dsh-wecom
+#     disabled: false
+#     config:
+#       botId: 'your-bot-id'
+#       secret: 'your-secret'
+#       allowedUserIds: ['your-wecom-userid']
+#
+# The row id matches the package name; the profile patch addresses it by id.
+# See README.md for the full configuration reference.
+
+- insert:
+    - id: dsh-wecom
+      name: 'dsh-wecom'
+      disabled: true
+      config: {}
