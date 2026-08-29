@@ -19,8 +19,21 @@
 - **侧栏状态入口**：dsh web 界面侧栏底部（设置上方）有 📱「企微」入口，直接显示总用户数、总会话数与连接状态，点击弹出完整面板（在线时长、活动会话、收发消息计数、待用户应答数；数据来自插件注册的 `/api/wecom/status` 路由）
 - **会话自动归组**：每个企微用户的会话自动挂到侧栏的「wecom」工作区分组（历史会话启动时回填，新会话创建即挂载）；因每用户目录是沙箱写边界，每个用户一个 wecom 文件夹
 - **流式进度直播**：收到消息立刻出现一个「🤔 正在处理…」气泡，agent 干活过程中实时刷新（工具调用、耗时），完成后气泡定格为最终答案——全程只有一条消息；超过 10 分钟（网关流上限）自动转为主动推送模式，可用 `progress.enabled=false` 关闭
-- 聊天命令：`/help`、`/todo`、`/history`、`/switch`、`/reset`、`/status`，**支持最短唯一前缀**（如 `/hi` 即 `/history`；前缀有歧义时会列出候选）
+- 聊天命令：`/help`、`/todo`、`/history`、`/switch`、`/compress`、`/stop`、`/cron`、`/reset`、`/status`，**支持最短唯一前缀**（如 `/hi` 即 `/history`；前缀有歧义时会列出候选）
 - 待办提醒：`/todo` 显示用户待办事宜；待办行带日期时间（如 `2026-09-05 20:00`）时，系统在到期前主动推送企业微信提醒（默认提前 30 分钟，行内可用 `提前N分钟/提前N小时` 自定义）
+
+## 会话控制与定时任务
+
+```text
+/compress    压缩当前会话上下文（长对话后释放 token，走 dsh compaction 接口）
+/stop        停止当前正在执行的任务（agent.cancel 用户取消）
+/cron add <名称> <HH:MM | every Nm|h> <任务>   创建定时任务（如 /cron add 日报 09:00 总结我的待办）
+/cron list | exec <名称> | del <名称> | enable <名称> | disable <名称>
+```
+
+- 定时任务属于创建它的聊天（私聊任务发回私聊，群任务发回群里），到期后自动以该聊天执行并把结果推送回来
+- 任务存储在插件自己的状态文件中，**不使用系统 cron**，重启不丢；错过的任务（dsh 停机期间）只补跑一次
+- 群聊中任务执行时若群正忙/等待应答，自动顺延到下一轮检查
 
 ## 历史会话管理
 
@@ -117,6 +130,8 @@ dsh plugin --profile im add github:wanetcn/DSH-WECOMNEW
 | `security.groupsRoot` | `''` | 群聊共享工作区根目录；每群 `<groupsRoot>/<chatId>`，默认 usersRoot 同级 `groups/` |
 | `security.boundaryPrompt` | `true` | 是否注入每用户权限边界提示 |
 | `progress.enabled` | `true` | 流式进度气泡开关（收消息秒回 + 工具活动实时刷新，完成定格为答案） |
+| `cron.enabled` | `true` | 定时任务调度开关（/cron） |
+| `cron.checkIntervalMs` | `30000` | 定时任务检查周期（ms，最小 10000） |
 | `todo.file` | `待办事宜文件.md` | 每个用户私有工作区中的待办文件名（`/todo` 读取并展示） |
 | `todo.defaultRemindMinutes` | `30` | 未写 `提前N` 时的默认提醒提前量（分钟） |
 | `todo.checkIntervalMs` | `300000` | 提醒扫描周期（ms，默认 5 分钟，最小 5000） |
