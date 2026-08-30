@@ -129,6 +129,7 @@ dsh plugin --profile im add github:wanetcn/DSH-WECOMNEW
 | `security.usersRoot` | `''` | 所有用户（含管理员）的私有工作区根目录；`<usersRoot>/<userId>`，上传存 `<usersRoot>/.wecom-uploads/<userId>/`；默认 `<agent.cwd>/users` |
 | `security.publicDir` | `''` | 公共工作区（普通用户只读）；默认 `<agent.cwd>/public` |
 | `security.groupsRoot` | `''` | 群聊共享工作区根目录；每群 `<groupsRoot>/<chatId>`，默认 usersRoot 同级 `groups/` |
+| `security.departments` | `[]` | 部门文档目录授权：`[{ name, dir, userids }]`。列表内成员的会话可**只读**访问对应目录（并在 `wecom_send_file` 中引用），非成员与未授权目录一律拒绝；与私人/公共工作区相互独立，目录不存在会自动创建 |
 | `security.boundaryPrompt` | `true` | 是否注入每用户权限边界提示 |
 | `progress.enabled` | `true` | 流式进度气泡开关（收消息秒回 + 工具活动实时刷新，完成定格为答案） |
 | `cron.enabled` | `true` | 定时任务调度开关（/cron） |
