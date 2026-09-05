@@ -131,6 +131,9 @@ dsh plugin --profile im add github:wanetcn/DSH-WECOMNEW
 | `security.groupsRoot` | `''` | 群聊共享工作区根目录；每群 `<groupsRoot>/<chatId>`，默认 usersRoot 同级 `groups/` |
 | `security.departments` | `[]` | 部门文档目录授权：`[{ name, dir, userids }]`。列表内成员的会话可**只读**访问对应目录（并在 `wecom_send_file` 中引用），非成员与未授权目录一律拒绝；与私人/公共工作区相互独立，目录不存在会自动创建 |
 | `security.boundaryPrompt` | `true` | 是否注入每用户权限边界提示 |
+| `security.sendApproval` | `true` | **出站文件审批**：非管理员发送**敏感文件**（代码/压缩包/配置密钥/数据库文件、无扩展名、或超过 `sendApprovalMaxDirectBytes` 的大文件）前，管理员在自己的企微私聊收到审批请求，回复「允许/拒绝」才继续；文档/图片/表格等直接放行。申请人会收到"已提交给某管理员审批"的状态提示。fail-closed：管理员不在线或超时（默认 10 分钟）即拒绝 |
+| `security.sendApprovalTimeoutMs` | `600000` | 出站审批等待时长（ms） |
+| `security.sendApprovalMaxDirectBytes` | `5242880` | 无需审批的直发文件大小上限（字节） |
 | `progress.enabled` | `true` | 流式进度气泡开关（收消息秒回 + 工具活动实时刷新，完成定格为答案） |
 | `cron.enabled` | `true` | 定时任务调度开关（/cron） |
 | `cron.checkIntervalMs` | `30000` | 定时任务检查周期（ms，最小 10000） |
